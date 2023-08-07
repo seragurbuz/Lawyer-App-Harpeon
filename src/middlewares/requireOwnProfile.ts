@@ -13,7 +13,6 @@ const requireOwnProfile = async (req: Request, res: Response, next: NextFunction
   }
 
   try {
-    // Use the correct public key for verification (accessTokenPublicKey)
     const verificationResult = verifyJwt(accessToken, "accessTokenPublicKey");
 
     if (!verificationResult.valid || !verificationResult.decoded) {
@@ -23,10 +22,10 @@ const requireOwnProfile = async (req: Request, res: Response, next: NextFunction
     // Get the lawyer ID from the payload of the verified access token
     const lawyerId = verificationResult.decoded.lawyer_id.toString();
 
-    // Get the profile ID from the request params or body, depending on your API design
+    // Get the profile ID from the request params
     const profileId = req.params.lawyer_id; 
 
-    // Check if the lawyer ID from the access token matches the profile being visited/updated
+    // Check if the lawyer ID from the access token matches the profile 
     if (lawyerId !== profileId) {
         return res.status(403).send("Access denied. You can only update your own profile.");
     }
@@ -51,10 +50,10 @@ const requireOwnProfile = async (req: Request, res: Response, next: NextFunction
         // Get the lawyer ID from the new access token payload
         const lawyerId = newVerificationResult.decoded.lawyer_id.toString();
 
-        // Get the profile ID from the request params or body, depending on your API design
+        // Get the profile ID from the request params
         const profileId = req.params.lawyer_id; 
 
-        // Check if the lawyer ID from the new access token matches the profile being visited/updated
+        // Check if the lawyer ID from the new access token matches the profile
         if (lawyerId !== profileId) {
             return res.status(403).send("Access denied. You can only update your own profile.");
         }

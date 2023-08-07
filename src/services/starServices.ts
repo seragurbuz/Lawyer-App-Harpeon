@@ -32,7 +32,7 @@ export async function giveStarRating( fromLawyerId: number, toLawyerId: number, 
     const newRatingNum = currentRatingNum + 1;
     const newAverageRating = newTotalStarRating / newRatingNum;
 
-    // Insert the star rating into the lawyer_ratings table
+    // Insert the star rating into the star_rating table
     await pool.query("INSERT INTO star_rating (from_lawyer_id, to_lawyer_id, rating) VALUES ($1, $2, $3)", 
     [ fromLawyerId, toLawyerId, rating ]);
 
@@ -43,6 +43,7 @@ export async function giveStarRating( fromLawyerId: number, toLawyerId: number, 
     );
   }
 
+  // For updating a previously given rating
   export async function updateRating(starRating: number, oldRating: number, newRating: number, ratingNum: number, toLawyerId: number, fromLawyerId: number){
         const totalRating = starRating * ratingNum - oldRating + newRating;
         const newAverageRating = totalRating / ratingNum;

@@ -89,7 +89,7 @@ export async function createLawyer(input: CreateLawyerInput): Promise<Lawyer | n
 }
 
 
-// Function to get a lawyer by ID
+// Function to get a lawyer's profile by ID
 export async function getLawyerProfileById(id: number): Promise<LawyerProfile | null> {
   try {
     const query = `
@@ -124,7 +124,7 @@ export async function getLawyerProfileById(id: number): Promise<LawyerProfile | 
 }
 
 // Function to get available lawyers in a bar
-export async function getAvailableLawyersByBarId(bar_id: number): Promise<LawyerProfile[]> {
+export async function getAvailableLawyersByBarId(bar_id: number, searchingLawyerId: number): Promise<LawyerProfile[]> {
   try {
     const query = `
       SELECT 
@@ -139,9 +139,9 @@ export async function getAvailableLawyersByBarId(bar_id: number): Promise<Lawyer
         lawyer_profile.star_rating
       FROM lawyer
       LEFT JOIN lawyer_profile ON lawyer.lawyer_id = lawyer_profile.lawyer_id
-      WHERE lawyer.bar_id = $1 AND lawyer.status = $2;
+      WHERE lawyer.bar_id = $1 AND lawyer.status = $2 AND lawyer.lawyer_id != $3;
     `;
-    const values = [bar_id, 'available'];
+    const values = [bar_id, 'available', searchingLawyerId];
     const result = await pool.query(query, values);
 
     // Omit 'verified' and 'password' fields from each lawyer profile in the result
@@ -154,12 +154,12 @@ export async function getAvailableLawyersByBarId(bar_id: number): Promise<Lawyer
   }
 }
 
+// Function to update a lawyer profile
 export async function updateLawyerProfile(lawyerId: number, updatedProfile: UpdateLawyerInput): Promise<LawyerProfile | null> {
   try {
     // Destructure the fields from the updatedProfile
     const { first_name, last_name, email, bar_id, status, linkedin_url, description} = updatedProfile.body;
 
-    // Prepare the updates and values for the lawyer table
     if (first_name !== undefined) {
       await pool.query('UPDATE lawyer SET first_name = $1 WHERE lawyer_id = $2', [first_name, lawyerId]);
     }
@@ -212,19 +212,5 @@ export async function getLawyerByEmail(email: string): Promise<Lawyer | null> {
   } catch (error) {
     console.error('Error getting lawyer by email:', error);
     return null;
-  }
-}
-
-// Function to delete a lawyer by ID
-export async function deleteLawyer(lawyer_id: number): Promise<boolean> {
-  try {
-    const query = 'DELETE FROM lawyer WHERE lawyer_id = $1;';
-    const values = [lawyer_id];
-    await pool.query(query, values);
-
-    return true;
-  } catch (error) {
-    console.error('Error deleting lawyer:', error);
-    return false;
   }
 }

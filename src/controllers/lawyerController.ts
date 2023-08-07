@@ -3,7 +3,6 @@ import {
   createLawyer,
   getLawyerProfileById,
   updateLawyerProfile,
-  deleteLawyer,
   getAvailableLawyersByBarId,
   LawyerProfile
 } from '../services/lawyerServices';
@@ -27,6 +26,7 @@ export async function createLawyerHandler(req: Request<{}, {}, CreateLawyerInput
   }
 }
 
+// Controller func to get a lawyer's profile by id
 export async function getLawyerProfileByIdHandler( req: Request, res: Response ) {
   const lawyerId = Number(req.params.lawyer_id);
 
@@ -47,14 +47,16 @@ export async function getLawyerProfileByIdHandler( req: Request, res: Response )
   }
 }
 
+// Controller function to get available lawyers in a bar
 export async function getAvailableLawyersByBarIdHandler(req: Request, res: Response) {
+  const lawyerId = res.locals.user.lawyer_id;
   const barId = Number(req.params.bar_id);
 
   if (isNaN(barId)) {
     return res.status(400).send("Invalid bar_id");
   }
   try {
-    const lawyers = await getAvailableLawyersByBarId(barId);
+    const lawyers = await getAvailableLawyersByBarId(barId, lawyerId);
 
     if (lawyers.length === 0) {
       return res.status(404).send('No available lawyers found for the specified bar');
@@ -93,25 +95,5 @@ export async function updateLawyerProfileHandler(req: Request<{}, {}, UpdateLawy
   } catch (error) {
     console.error("Error updating lawyer profile:", error);
     return res.status(500).json({ error: "Failed to update lawyer profile" });
-  }
-}
-
-
-// Controller function to delete a lawyer by ID
-export async function deleteLawyerHandler(req: Request, res: Response) {
-  const lawyerId = Number(req.params.lawyer_id);
-
-  if (isNaN(lawyerId)) {
-    return res.status(400).send("Invalid lawyer_id");
-  }
-  try {
-    const deleted = await deleteLawyer(lawyerId);
-    if (!deleted) {
-      return res.status(500).json({ error: 'Failed to delete lawyer' });
-    }
-
-    return res.status(200).json({ message: 'Lawyer deleted successfully' });
-  } catch (error: any) {
-    return res.status(500).json({ error: 'Failed to delete lawyer', message: error.message });
   }
 }

@@ -1,6 +1,6 @@
 import express, {Request, Response } from "express";
 import validateResource from "../middlewares/validateResource";
-import { createLawyerHandler, getLawyerProfileByIdHandler, updateLawyerProfileHandler, deleteLawyerHandler, getAvailableLawyersByBarIdHandler} from "../controllers/lawyerController";
+import { createLawyerHandler, getLawyerProfileByIdHandler, updateLawyerProfileHandler, getAvailableLawyersByBarIdHandler} from "../controllers/lawyerController";
 import { createLawyerSchema, updateLawyerSchema } from "../schemas/lawyerSchema";
 import requireUser from "../middlewares/requireUser";
 import requireOwnProfile from "../middlewares/requireOwnProfile";
@@ -20,8 +20,5 @@ lawyerRouter.get('/api/lawyers/bar/:bar_id', requireUser, getAvailableLawyersByB
 
 // Route for updating a lawyer profile
 lawyerRouter.put('/api/profile/:lawyer_id', validateResource(updateLawyerSchema), requireOwnProfile, updateLawyerProfileHandler);
-
-// Route for deleting a lawyer
-lawyerRouter.delete('/api/lawyers/:lawyer_id', deleteLawyerHandler);
 
 export default lawyerRouter;

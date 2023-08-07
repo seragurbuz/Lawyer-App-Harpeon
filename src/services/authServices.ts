@@ -34,7 +34,6 @@ export async function reIssueAccessToken({ refreshToken }: { refreshToken: strin
       return null;
     }
 
-    // Assuming you have a function to get the user/lawyer by lawyer_id
     const lawyer = await getLawyerProfileById(decoded.lawyer_id);
     if (!lawyer) {
       return null;
