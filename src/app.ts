@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express from "express";
 import dotenv from "dotenv";
 dotenv.config();
 import config from "config";
@@ -9,6 +9,8 @@ import barRouter from "./routes/barRoutes";
 import lawyerRouter from "./routes/lawyerRoutes";
 import authRouter from "./routes/authRoutes";
 import starRouter from "./routes/starRoutes";
+import jobRouter from "./routes/jobRoutes";
+import offerRouter from "./routes/offerRoutes";
 import deserializeUser from "./middlewares/deserializeUser";
 
 
@@ -23,6 +25,8 @@ app.use(barRouter);
 app.use(lawyerRouter);
 app.use(authRouter);
 app.use(starRouter);
+app.use(jobRouter);
+app.use(offerRouter);
 
 const port = config.get<number>("port");
 

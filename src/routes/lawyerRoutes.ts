@@ -3,7 +3,6 @@ import validateResource from "../middlewares/validateResource";
 import { createLawyerHandler, getLawyerProfileByIdHandler, updateLawyerProfileHandler, getAvailableLawyersByBarIdHandler} from "../controllers/lawyerController";
 import { createLawyerSchema, updateLawyerSchema } from "../schemas/lawyerSchema";
 import requireUser from "../middlewares/requireUser";
-import requireOwnProfile from "../middlewares/requireOwnProfile";
 
 const lawyerRouter = express.Router();
 
@@ -19,6 +18,6 @@ lawyerRouter.get('/api/lawyers/profile/:lawyer_id', requireUser, getLawyerProfil
 lawyerRouter.get('/api/lawyers/bar/:bar_id', requireUser, getAvailableLawyersByBarIdHandler);
 
 // Route for updating a lawyer profile
-lawyerRouter.put('/api/profile/:lawyer_id', validateResource(updateLawyerSchema), requireOwnProfile, updateLawyerProfileHandler);
+lawyerRouter.put('/api/profile/:lawyer_id', validateResource(updateLawyerSchema), requireUser, updateLawyerProfileHandler);
 
 export default lawyerRouter;

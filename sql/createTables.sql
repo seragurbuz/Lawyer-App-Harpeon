@@ -36,3 +36,21 @@ CREATE TABLE star_rating (
   FOREIGN KEY (from_lawyer_id) REFERENCES lawyer (lawyer_id),
   FOREIGN KEY (to_lawyer_id) REFERENCES lawyer (lawyer_id)
 );
+
+CREATE TABLE jobs (
+  job_id SERIAL NOT NULL PRIMARY KEY,
+  description TEXT NOT NULL,
+  start_date DATE,
+  end_date DATE NOT NULL,
+  job_state VARCHAR(20) DEFAULT 'not_started' CHECK (state IN ('not_started', 'started', 'ended')),
+  creator_lawyer_id INTEGER REFERENCES lawyer(lawyer_id) ON DELETE CASCADE,
+  lawyer_id INTEGER REFERENCES lawyer(lawyer_id) ON DELETE CASCADE
+);
+
+CREATE TABLE offers (
+  offer_id SERIAL NOT NULL PRIMARY KEY,
+  from_lawyer_id INTEGER REFERENCES lawyer(lawyer_id) ON DELETE CASCADE,
+  to_lawyer_id INTEGER REFERENCES lawyer(lawyer_id) ON DELETE CASCADE,
+  job_id INTEGER REFERENCES jobs(job_id) ON DELETE CASCADE,
+  state VARCHAR(20) DEFAULT 'waiting' CHECK (state IN ('accepted', 'waiting', 'rejected'))
+);
