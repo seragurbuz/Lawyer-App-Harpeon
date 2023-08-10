@@ -26,6 +26,14 @@ export async function makeOffer(fromLawyerId: number, toLawyerId: number, jobId:
       if (fromLawyerId !== creatorLawyerId) {
         throw new Error("Only the creator lawyer can make offers for this job.");
       }
+
+      // Check if the job has already been offered
+      const offerExistsQuery = `SELECT offer_id FROM offers WHERE from_lawyer_id = $1 AND job_id = $2;`;
+      const offerExistsResult = await pool.query(offerExistsQuery, [fromLawyerId, jobId]);
+
+      if (offerExistsResult.rows.length > 0) {
+        throw new Error("The same job has already been offered to someone else.");
+      }
   
       // Insert the offer into the offers table
       const insertQuery = `INSERT INTO offers (from_lawyer_id, to_lawyer_id, job_id) VALUES ($1, $2, $3);`;
@@ -42,21 +50,26 @@ export async function makeOffer(fromLawyerId: number, toLawyerId: number, jobId:
 export async function rejectOffer(offerId: number, lawyerId: number): Promise<boolean> {
   try {
     // Get the offer details
-    const getOfferQuery = `SELECT to_lawyer_id, job_id FROM offers WHERE offer_id = $1;`;
+    const getOfferQuery = `SELECT from_lawyer_id, to_lawyer_id, job_id  FROM offers WHERE offer_id = $1;`;
     const offerResult = await pool.query(getOfferQuery, [offerId]);
     
     if (offerResult.rows.length === 0) {
         throw new Error("Offer not found.");
     }
     
-    const { to_lawyer_id } = offerResult.rows[0];
+    const { from_lawyer_id, to_lawyer_id, job_id } = offerResult.rows[0];
 
     if (to_lawyer_id !== lawyerId) {
         throw new Error("This job is not offered to the current user");
     }
 
-    const updateQuery = `UPDATE offers SET state = 'rejected' WHERE offer_id = $1;`;
-    await pool.query(updateQuery, [offerId]);
+    // Insert the rejected offer into the rejected_offers table
+    const insertRejectedQuery = `INSERT INTO rejected_offers (from_lawyer_id, to_lawyer_id, job_id) VALUES ($1, $2, $3);`;
+    await pool.query(insertRejectedQuery, [from_lawyer_id, to_lawyer_id, job_id]);
+
+    // Delete the offer from the offers table
+    const deleteQuery = `DELETE FROM offers WHERE offer_id = $1;`;
+    await pool.query(deleteQuery, [offerId]);
 
     return true;
   } catch (error) {
@@ -148,4 +161,34 @@ export async function listReceivedOffers(toLawyerId: number): Promise<Offer[]> {
       return [];
     }
   }
+
+// Function to delete an offer
+export async function deleteOffer(offerId: number, lawyerId: number): Promise<boolean> {
+  try {
+    // Fetch the offer details
+    const query = `SELECT from_lawyer_id, job_id FROM offers WHERE offer_id = $1;`;
+    const result = await pool.query(query, [offerId]);
+
+    if (result.rows.length === 0) {
+      throw new Error("Offer not found.");
+    }
+
+    const { from_lawyer_id } = result.rows[0];
+
+    // Check if the lawyer trying to delete the offer is the creator
+    if (from_lawyer_id !== lawyerId) {
+      throw new Error("Only the creator lawyer can delete this offer.");
+    }
+
+    // Delete the offer from the offers table
+    const deleteQuery = `DELETE FROM offers WHERE offer_id = $1;`;
+    await pool.query(deleteQuery, [offerId]);
+
+    return true;
+  } catch (error) {
+    console.error("Error deleting offer:", error);
+    return false;
+  }
+}
+
   

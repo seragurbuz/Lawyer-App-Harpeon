@@ -11,6 +11,7 @@ export interface Lawyer {
   password: string;
   bar_id: number;
   status: string;
+  verified: boolean;
 }
 
 export interface LawyerProfile extends Lawyer {
@@ -100,6 +101,7 @@ export async function getLawyerProfileById(id: number): Promise<LawyerProfile | 
         lawyer.email, 
         lawyer.bar_id, 
         lawyer.status, 
+        lawyer.verified,
         lawyer_profile.linkedin_url,
         lawyer_profile.description,
         lawyer_profile.star_rating
@@ -114,7 +116,7 @@ export async function getLawyerProfileById(id: number): Promise<LawyerProfile | 
       return null;
     }
 
-    const lawyerProfile = omit(result.rows[0], ["password", "verified"]) as LawyerProfile;
+    const lawyerProfile = omit(result.rows[0], "password") as LawyerProfile;
 
     return lawyerProfile;
   } catch (error) {
@@ -134,6 +136,7 @@ export async function getAvailableLawyersByBarId(bar_id: number, searchingLawyer
         lawyer.email, 
         lawyer.bar_id, 
         lawyer.status,
+        lawyer.verified,
         lawyer_profile.linkedin_url,
         lawyer_profile.description,
         lawyer_profile.star_rating
@@ -145,7 +148,7 @@ export async function getAvailableLawyersByBarId(bar_id: number, searchingLawyer
     const result = await pool.query(query, values);
 
     // Omit 'verified' and 'password' fields from each lawyer profile in the result
-    const lawyerProfiles: LawyerProfile[] = result.rows.map((row) => omit(row, ["verified", "password"]) as LawyerProfile);
+    const lawyerProfiles: LawyerProfile[] = result.rows.map((row) => omit(row, "password") as LawyerProfile);
 
     return lawyerProfiles;
   } catch (error) {

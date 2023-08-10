@@ -76,3 +76,16 @@ export async function getJobById(jobId: number) {
   }
 }
 
+// Function to list jobs created by a lawyer
+export async function listCreatedJobs(lawyerId: number): Promise<Job[]> {
+  try {
+    const query = `SELECT * FROM jobs WHERE creator_lawyer_id = $1;`;
+    const result = await pool.query(query, [lawyerId]);
+
+    const createdJobs: Job[] = result.rows;
+    return createdJobs;
+  } catch (error) {
+    console.error("Error listing created jobs:", error);
+    return [];
+  }
+}

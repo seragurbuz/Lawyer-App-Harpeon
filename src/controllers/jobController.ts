@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { createJob, endJob, getJobById } from '../services/jobServices';
+import { createJob, endJob, getJobById, listCreatedJobs } from '../services/jobServices';
 import { CreateJobInput } from '../schemas/jobSchema';
 
 // Controller func to create a job
@@ -53,5 +53,17 @@ export async function getJobByIdHandler(req: Request, res: Response) {
   } catch (error) {
     console.error("Error in getJobByIdHandler:", error);
     return res.status(500).json({ error: "Failed to get job by ID" });
+  }
+}
+
+export async function listCreatedJobsHandler(req: Request, res: Response) {
+  const lawyerId = res.locals.user.lawyer_id;
+
+  try {
+    const createdJobs = await listCreatedJobs(lawyerId);
+    return res.status(200).json(createdJobs);
+  } catch (error) {
+    console.error("Error listing created jobs:", error);
+    return res.status(500).json({ error: "Failed to list created jobs" });
   }
 }

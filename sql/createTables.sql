@@ -54,3 +54,11 @@ CREATE TABLE offers (
   job_id INTEGER REFERENCES jobs(job_id) ON DELETE CASCADE,
   state VARCHAR(20) DEFAULT 'waiting' CHECK (state IN ('accepted', 'waiting', 'rejected'))
 );
+
+CREATE TABLE rejected_offers (
+  rejected_offer_id SERIAL NOT NULL PRIMARY KEY,
+  from_lawyer_id INTEGER REFERENCES lawyer(lawyer_id) ON DELETE CASCADE,
+  to_lawyer_id INTEGER REFERENCES lawyer(lawyer_id) ON DELETE CASCADE,
+  job_id INTEGER REFERENCES jobs(job_id) ON DELETE CASCADE,
+  rejected_at TIMESTAMP DEFAULT NOW()
+);

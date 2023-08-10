@@ -1,5 +1,5 @@
 import express from 'express';
-import { makeOfferHandler, listSentOffersHandler, listReceivedOffersHandler, acceptOfferHandler, rejectOfferHandler } from '../controllers/offerController';
+import { makeOfferHandler, listSentOffersHandler, listReceivedOffersHandler, acceptOfferHandler, rejectOfferHandler, deleteOfferHandler } from '../controllers/offerController';
 import validateResource from '../middlewares/validateResource';
 import { makeOfferSchema } from '../schemas/offerSchema';
 import requireUser from '../middlewares/requireUser';
@@ -16,5 +16,7 @@ offerRouter.get('/api/offers/received', requireUser, listReceivedOffersHandler);
 offerRouter.put('/api/offers/:offer_id/accept', requireUser, acceptOfferHandler);
 // Route for rejecting an offer
 offerRouter.put('/api/offers/:offer_id/reject', requireUser, rejectOfferHandler);
+// Route for deleting an offer
+offerRouter.delete('/api/offers/:offer_id', requireUser, deleteOfferHandler)
 
 export default offerRouter;

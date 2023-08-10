@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { makeOffer, rejectOffer, acceptOffer, listSentOffers, listReceivedOffers } from '../services/offerServices';
+import { makeOffer, rejectOffer, acceptOffer, listSentOffers, listReceivedOffers, deleteOffer } from '../services/offerServices';
 import { MakeOfferInput } from '../schemas/offerSchema';
 
 export async function makeOfferHandler(req: Request<any, any, MakeOfferInput["body"]>, res: Response) {
@@ -77,3 +77,23 @@ export async function listReceivedOffersHandler(req: Request, res: Response) {
     return res.status(500).json({ error: 'Failed to get received offers' });
   }
 }
+
+// Controller function to delete an offer
+export async function deleteOfferHandler(req: Request, res: Response) {
+  const offerId = Number(req.params.offerId);
+  const lawyerId = res.locals.user.lawyer_id;
+
+  try {
+    const success = await deleteOffer(offerId, lawyerId);
+
+    if (success) {
+      return res.status(200).json({ message: "Offer deleted successfully." });
+    } else {
+      return res.status(400).json({ error: "Failed to delete the offer." });
+    }
+  } catch (error) {
+    console.error("Error in deleteOfferHandler:", error);
+    return res.status(500).json({ error: "Internal server error." });
+  }
+}
+

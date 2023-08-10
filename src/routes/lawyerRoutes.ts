@@ -6,18 +6,13 @@ import requireUser from "../middlewares/requireUser";
 
 const lawyerRouter = express.Router();
 
-lawyerRouter.get("/healthcheck", (req: Request, res: Response) => res.sendStatus(200));
-
 // Route for creating a new lawyer
-lawyerRouter.post('/api/lawyers', validateResource(createLawyerSchema), createLawyerHandler);
-
+lawyerRouter.post('/api/register', validateResource(createLawyerSchema), createLawyerHandler);
 // Route for getting a lawyer profile by ID
 lawyerRouter.get('/api/lawyers/profile/:lawyer_id', requireUser, getLawyerProfileByIdHandler);
-
 // Route for listing available lawyers for a selected bar
 lawyerRouter.get('/api/lawyers/bar/:bar_id', requireUser, getAvailableLawyersByBarIdHandler);
-
 // Route for updating a lawyer profile
-lawyerRouter.put('/api/profile/:lawyer_id', validateResource(updateLawyerSchema), requireUser, updateLawyerProfileHandler);
+lawyerRouter.put('/api/myprofile/update', validateResource(updateLawyerSchema), requireUser, updateLawyerProfileHandler);
 
 export default lawyerRouter;

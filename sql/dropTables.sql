@@ -5,3 +5,4 @@ DROP TABLE IF EXISTS lawyer_profile;
 DROP TABLE IF EXISTS star_rating;
 DROP TABLE IF EXISTS jobs;
 DROP TABLE IF EXISTS offers;
+DROP TABLE IF EXISTS rejected_offers;

@@ -70,14 +70,8 @@ export async function getAvailableLawyersByBarIdHandler(req: Request, res: Respo
 }
 
 // Controller function to update lawyer profile
-export async function updateLawyerProfileHandler(req: Request<any, {}, UpdateLawyerInput["body"]>, res: Response) {
+export async function updateLawyerProfileHandler(req: Request<{}, {}, UpdateLawyerInput["body"]>, res: Response) {
   const lawyerId = res.locals.user.lawyer_id;
-  const profileId = Number(req.params.lawyer_id);
-
-  // Check if the lawyer is updating its own profile
-  if (lawyerId !== profileId) {
-    return res.status(403).send("Access denied. You can only update your own profile.");
-  }
 
   const requestBodyFields = Object.keys(req.body);
   const allowedFields = ["first_name", "last_name", "email", "bar_id", "status", "linkedin_url", "description"];
@@ -97,7 +91,7 @@ export async function updateLawyerProfileHandler(req: Request<any, {}, UpdateLaw
     }
 
     // Omit 'verified' and 'password' fields before sending the response
-    const sanitizedProfile = omit(updatedLawyerProfile, ["verified", "password"]) as LawyerProfile;
+    const sanitizedProfile = omit(updatedLawyerProfile,  "password") as LawyerProfile;
     return res.status(200).json(sanitizedProfile);
   } catch (error) {
     console.error("Error updating lawyer profile:", error);
