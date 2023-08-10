@@ -1,26 +1,28 @@
 import { Request, Response } from 'express';
-import {
-  createLawyer,
-  getLawyerProfileById,
-  updateLawyerProfile,
-  getAvailableLawyersByBarId,
-  LawyerProfile
-} from '../services/lawyerServices';
-import {
-  CreateLawyerInput,
-  UpdateLawyerInput,
-} from '../schemas/lawyerSchema';
+import { createLawyer, getLawyerProfileById, updateLawyerProfile, getAvailableLawyersByBarId, LawyerProfile} from '../services/lawyerServices';
+import { CreateLawyerInput, UpdateLawyerInput } from '../schemas/lawyerSchema';
 import { omit } from 'lodash';
+import sendEmail from '../utils/mailer';
 
 // Controller function to create a new lawyer
 export async function createLawyerHandler(req: Request<{}, {}, CreateLawyerInput["body"]>, res: Response) {
   try {
+
     const lawyer = await createLawyer(req);
+
     if (!lawyer) {
       return res.status(500).json({ error: 'Failed to create lawyer' });
     }
 
-    return res.status(200).json(lawyer);
+    // sending the verification code
+    await sendEmail({
+      to: lawyer.email,
+      from: "test@example.com",
+      subject: "Verify your email",
+      text: `verification code: ${lawyer.verification_code}. Id: ${lawyer.lawyer_id}`,
+    });
+
+    return res.status(200).json(omit(lawyer, ["password", "verification_code", "password_reset_code"]));
   } catch (error: any) {
     return res.status(500).json({ error: 'Failed to create lawyer', message: error.message });
   }
@@ -40,7 +42,7 @@ export async function getLawyerProfileByIdHandler( req: Request, res: Response )
       return res.status(404).send("No lawyers found with the specified id");
     }
 
-    return res.status(200).json(lawyer);
+    return res.status(200).json(omit(lawyer, ["password", "verification_code", "password_reset_code"]));
   } catch (error) {
     console.error("Error getting lawyer:", error);
     return res.status(500).json({ error: "Failed to get lawyer" });
@@ -91,7 +93,7 @@ export async function updateLawyerProfileHandler(req: Request<{}, {}, UpdateLawy
     }
 
     // Omit 'verified' and 'password' fields before sending the response
-    const sanitizedProfile = omit(updatedLawyerProfile,  "password") as LawyerProfile;
+    const sanitizedProfile = omit(updatedLawyerProfile,  ["password", "verification_code", "password_reset_code"]) as LawyerProfile;
     return res.status(200).json(sanitizedProfile);
   } catch (error) {
     console.error("Error updating lawyer profile:", error);

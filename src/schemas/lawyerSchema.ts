@@ -27,14 +27,6 @@ const payload = {
   }),
 };
 
-const params = {
-  params: object({
-    lawyer_id: number({
-      required_error: "Lawyer ID is required",
-    }),
-  }),
-};
-
 export const createLawyerSchema = object({
   ...payload,
 });
@@ -62,4 +54,3 @@ export const getAvailableLawyersSchema = object({
 export type CreateLawyerInput = TypeOf<typeof createLawyerSchema>;
 export type UpdateLawyerInput = TypeOf<typeof updateLawyerSchema>;
 export type GetAvailableLawyersByBarIdInput = TypeOf<typeof getAvailableLawyersSchema>;
-

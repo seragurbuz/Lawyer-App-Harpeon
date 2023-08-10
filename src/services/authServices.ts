@@ -1,6 +1,9 @@
 import { getLawyerByEmail, comparePasswords, getLawyerProfileById } from "./lawyerServices";
 import config from "config";
 import { signJwt, verifyJwt } from "../utils/jwt";
+import { pool } from "../utils/connectToDb";
+import { v4 as uuidv4 } from "uuid";
+import argon2 from "argon2";
 
 // Function to check wheter the email and password matches
 export async function validatePassword({
@@ -22,7 +25,6 @@ export async function validatePassword({
     const { password: _, ...lawyerWithoutPassword } = lawyer;
     return lawyerWithoutPassword;
   }
-
 
 export async function reIssueAccessToken({ refreshToken }: { refreshToken: string }): Promise<string | null> {
   try {
@@ -50,5 +52,49 @@ export async function reIssueAccessToken({ refreshToken }: { refreshToken: strin
   } catch (error) {
     console.error('Error reissuing access token:', error);
     return null;
+  }
+}
+
+// Function to verify lawyer's email
+export async function verifyEmail(lawyerId: number): Promise<boolean> {
+  try {
+    const query = `UPDATE lawyer SET verified = true WHERE lawyer_id = $1;`;
+    await pool.query(query, [lawyerId]);
+    return true;
+  } catch (error) {
+    console.error("Error verifying email:", error);
+    return false;
+  }
+}
+
+// Function to send password reset code
+export async function forgotPassword(lawyerId: number): Promise<string | null> {
+  try {
+
+    const passwordResetCode = uuidv4();
+
+    const query = `UPDATE lawyer SET password_reset_code = $1 WHERE lawyer_id = $2;`;
+    await pool.query(query, [passwordResetCode, lawyerId]);
+
+    return passwordResetCode;
+  } catch (error) {
+    console.error("Error sending password reset code:", error);
+    return null;
+  }
+}
+
+// Function to reset password
+export async function resetPassword(lawyerId: number, password: string): Promise<boolean> {
+  try{
+
+    // Hash the password using argon2
+    const hashedPassword = await argon2.hash(password);
+
+    await pool.query('UPDATE lawyer SET password = $1, password_reset_code = null WHERE lawyer_id = $2', [hashedPassword, lawyerId]);
+
+    return true;
+  }catch (error) {
+    console.error("Could not reset lawyer password:", error);
+    return false;
   }
 }

@@ -16,8 +16,10 @@ CREATE TABLE  lawyer (
   email VARCHAR(255) UNIQUE NOT NULL,
   password VARCHAR(100) NOT NULL,
   bar_id INTEGER REFERENCES bar (bar_id) ON DELETE CASCADE,
-  status VARCHAR(100) DEFAULT 'available' CHECK (status IN ('reserved', 'available')),
-  verified BOOLEAN DEFAULT true
+  status VARCHAR(100) NOT NULL DEFAULT 'available' CHECK (status IN ('reserved', 'available')),
+  verified BOOLEAN NOT NULL DEFAULT false,
+  verification_code VARCHAR(255), 
+  password_reset_code VARCHAR(255)
 );
 
 CREATE TABLE lawyer_profile (
@@ -29,12 +31,12 @@ CREATE TABLE lawyer_profile (
 );
 
 CREATE TABLE star_rating (
-  rating_id SERIAL PRIMARY KEY,
+  rating_id SERIAL NOT NULL PRIMARY KEY,
   rating INT NOT NULL,
   from_lawyer_id INT NOT NULL,
   to_lawyer_id INT NOT NULL,
-  FOREIGN KEY (from_lawyer_id) REFERENCES lawyer (lawyer_id),
-  FOREIGN KEY (to_lawyer_id) REFERENCES lawyer (lawyer_id)
+  FOREIGN KEY (from_lawyer_id) REFERENCES lawyer (lawyer_id) ON DELETE CASCADE,
+  FOREIGN KEY (to_lawyer_id) REFERENCES lawyer (lawyer_id) ON DELETE CASCADE
 );
 
 CREATE TABLE jobs (
@@ -42,9 +44,10 @@ CREATE TABLE jobs (
   description TEXT NOT NULL,
   start_date DATE,
   end_date DATE NOT NULL,
-  job_state VARCHAR(20) DEFAULT 'not_started' CHECK (state IN ('not_started', 'started', 'ended')),
+  job_state VARCHAR(20) NOT NULL DEFAULT 'not_started' CHECK (state IN ('not_started', 'started', 'ended')),
   creator_lawyer_id INTEGER REFERENCES lawyer(lawyer_id) ON DELETE CASCADE,
-  lawyer_id INTEGER REFERENCES lawyer(lawyer_id) ON DELETE CASCADE
+  lawyer_id INTEGER REFERENCES lawyer(lawyer_id) ON DELETE CASCADE,
+  created_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE offers (
@@ -52,7 +55,7 @@ CREATE TABLE offers (
   from_lawyer_id INTEGER REFERENCES lawyer(lawyer_id) ON DELETE CASCADE,
   to_lawyer_id INTEGER REFERENCES lawyer(lawyer_id) ON DELETE CASCADE,
   job_id INTEGER REFERENCES jobs(job_id) ON DELETE CASCADE,
-  state VARCHAR(20) DEFAULT 'waiting' CHECK (state IN ('accepted', 'waiting', 'rejected'))
+  state VARCHAR(20) NOT NULL DEFAULT 'waiting' CHECK (state IN ('accepted', 'waiting', 'rejected'))
 );
 
 CREATE TABLE rejected_offers (

@@ -2,6 +2,7 @@ import { pool } from '../utils/connectToDb';
 import { CreateLawyerInput, UpdateLawyerInput} from '../schemas/lawyerSchema';
 import argon2 from "argon2";
 import { omit } from 'lodash';
+import { v4 as uuidv4 } from "uuid";
 
 export interface Lawyer {
   lawyer_id: number;
@@ -12,6 +13,8 @@ export interface Lawyer {
   bar_id: number;
   status: string;
   verified: boolean;
+  verification_code: string;
+  password_reset_code: string;
 }
 
 export interface LawyerProfile extends Lawyer {
@@ -41,6 +44,9 @@ export async function createLawyer(input: CreateLawyerInput): Promise<Lawyer | n
     // Destructure the nested 'body' object to get individual properties
     const { first_name, last_name, email, password, passwordConfirmation, bar_id } = input.body;
 
+    // Generate a default verification code
+    const verificationCode = uuidv4();
+
     // Check if the password and password confirmation match
     if (password !== passwordConfirmation) {
       throw new Error("Passwords do not match");
@@ -53,17 +59,17 @@ export async function createLawyer(input: CreateLawyerInput): Promise<Lawyer | n
     await pool.query("BEGIN");
 
     const insertLawyerQuery = `
-      INSERT INTO lawyer (first_name, last_name, email, password, bar_id, status, verified)
-      VALUES ($1, $2, $3, $4, $5, $6, true)
+      INSERT INTO lawyer (first_name, last_name, email, password, bar_id, status, verification_code)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *;
     `;
 
-    const lawyerValues = [first_name, last_name, email, hashedPassword, bar_id, 'available'];
+    const lawyerValues = [first_name, last_name, email, hashedPassword, bar_id, 'available', verificationCode];
 
     const result = await pool.query(insertLawyerQuery, lawyerValues);
 
     // Get the inserted lawyer's info
-    const createdLawyer = omit(result.rows[0], "password") as Lawyer;
+    const createdLawyer = result.rows[0] as Lawyer;
 
     const lawyer_id = result.rows[0].lawyer_id;
 
@@ -89,7 +95,6 @@ export async function createLawyer(input: CreateLawyerInput): Promise<Lawyer | n
   }
 }
 
-
 // Function to get a lawyer's profile by ID
 export async function getLawyerProfileById(id: number): Promise<LawyerProfile | null> {
   try {
@@ -102,6 +107,8 @@ export async function getLawyerProfileById(id: number): Promise<LawyerProfile | 
         lawyer.bar_id, 
         lawyer.status, 
         lawyer.verified,
+        lawyer.verification_code,
+        lawyer.password_reset_code,
         lawyer_profile.linkedin_url,
         lawyer_profile.description,
         lawyer_profile.star_rating
@@ -116,7 +123,7 @@ export async function getLawyerProfileById(id: number): Promise<LawyerProfile | 
       return null;
     }
 
-    const lawyerProfile = omit(result.rows[0], "password") as LawyerProfile;
+    const lawyerProfile = result.rows[0] as LawyerProfile;
 
     return lawyerProfile;
   } catch (error) {
@@ -148,7 +155,7 @@ export async function getAvailableLawyersByBarId(bar_id: number, searchingLawyer
     const result = await pool.query(query, values);
 
     // Omit 'verified' and 'password' fields from each lawyer profile in the result
-    const lawyerProfiles: LawyerProfile[] = result.rows.map((row) => omit(row, "password") as LawyerProfile);
+    const lawyerProfiles: LawyerProfile[] = result.rows.map((row) => omit(row, ["password", "verification_code", "password_reset_code"]) as LawyerProfile);
 
     return lawyerProfiles;
   } catch (error) {

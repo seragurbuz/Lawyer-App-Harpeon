@@ -1,6 +1,6 @@
 import express, {Request, Response } from "express";
 import validateResource from "../middlewares/validateResource";
-import { createLawyerHandler, getLawyerProfileByIdHandler, updateLawyerProfileHandler, getAvailableLawyersByBarIdHandler} from "../controllers/lawyerController";
+import { createLawyerHandler, getLawyerProfileByIdHandler, updateLawyerProfileHandler, getAvailableLawyersByBarIdHandler } from "../controllers/lawyerController";
 import { createLawyerSchema, updateLawyerSchema } from "../schemas/lawyerSchema";
 import requireUser from "../middlewares/requireUser";
 
