@@ -53,6 +53,6 @@ export async function giveStarRating( fromLawyerId: number, toLawyerId: number, 
           );
         await pool.query(
             "UPDATE star_rating SET rating = $1 WHERE from_lawyer_id = $2 AND to_lawyer_id = $3",
-            [newAverageRating, fromLawyerId, toLawyerId]
+            [newRating, fromLawyerId, toLawyerId]
         )
   }

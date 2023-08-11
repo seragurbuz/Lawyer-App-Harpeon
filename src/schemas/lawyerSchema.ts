@@ -51,6 +51,16 @@ export const getAvailableLawyersSchema = object({
   }),
 });
 
+export const updateLawyerLocationSchema = object({
+  body: object({
+    bar_name: string({
+      required_error: "Bar name is required",
+    }),
+  }),
+});
+
 export type CreateLawyerInput = TypeOf<typeof createLawyerSchema>;
 export type UpdateLawyerInput = TypeOf<typeof updateLawyerSchema>;
 export type GetAvailableLawyersByBarIdInput = TypeOf<typeof getAvailableLawyersSchema>;
+export type UpdateLawyerLocationInput = TypeOf<typeof updateLawyerLocationSchema>;
+

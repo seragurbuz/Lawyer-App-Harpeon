@@ -224,3 +224,51 @@ export async function getLawyerByEmail(email: string): Promise<Lawyer | null> {
     return null;
   }
 }
+
+// Function to get lawyer's location information
+export async function getLawyerLocation(lawyerId: number) {
+  try {
+    const query = `
+      SELECT c.city_id, c.city_name, b.bar_id, b.bar_name
+      FROM lawyer l
+      INNER JOIN bar b ON l.bar_id = b.bar_id
+      INNER JOIN city c ON b.city_id = c.city_id
+      WHERE l.lawyer_id = $1;
+    `;
+
+    const result = await pool.query(query, [lawyerId]);
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    return result.rows[0];
+  } catch (error) {
+    console.error("Error getting lawyer's location:", error);
+    return null;
+  }
+}
+
+// Function to update lawyer location
+export async function updateLawyerLocation(lawyerId: number, barName: string): Promise<boolean> {
+  try {
+    // Check if the bar exists
+    const checkBarQuery = `SELECT bar_id FROM bar WHERE bar_name = $1;`;
+    const barResult = await pool.query(checkBarQuery, [barName]);
+
+    if (barResult.rows.length === 0) {
+      throw new Error("Bar not found.");
+    }
+
+    const barId = barResult.rows[0].bar_id;
+
+    // Update the lawyer's bar_id
+    const updateLawyerQuery = `UPDATE lawyer SET bar_id = $1 WHERE lawyer_id = $2;`;
+    await pool.query(updateLawyerQuery, [barId, lawyerId]);
+
+    return true;
+  } catch (error) {
+    console.error("Error updating lawyer location:", error);
+    return false;
+  }
+}

@@ -59,24 +59,24 @@ export async function verifyEmailHandler( req: Request<{}, {}, VerifyEmailInput[
 
     return res.send("Lawyer successfully verified");
   }
-  return res.send("Could not verify user");
+  return res.send("Could not verify lawyer");
 }
 
 export async function forgotPasswordHandler(req: Request<{}, {}, ForgotPasswordInput["body"]>, res: Response) {
 
-  const message = "If a user with that email is registered you will receive a password reset email";
+  const message = "If a lawyer with that email is registered you will receive a password reset email";
 
   const { email } = req.body;
 
   const lawyer = await getLawyerByEmail(email);
 
   if (!lawyer) {
-    log.debug(`User with email ${email} does not exists`);
+    log.debug(`Lawyer with email ${email} does not exists`);
     return res.send(message);
   }
 
   if (!lawyer.verified) {
-    return res.send("User is not verified");
+    return res.send("Lawyer is not verified");
   }
 
   const passwordResetCode = await forgotPassword(lawyer.lawyer_id);
@@ -100,7 +100,7 @@ export async function resetPasswordHandler( req: Request<{}, {}, ResetPasswordIn
   const lawyer = await getLawyerProfileById(lawyer_id);
 
   if ( !lawyer || !lawyer.password_reset_code || lawyer.password_reset_code !== password_reset_code) {
-    return res.status(400).send("Could not reset user password");
+    return res.status(400).send("Could not reset lawyer password");
   }
 
   await resetPassword(lawyer_id, password);

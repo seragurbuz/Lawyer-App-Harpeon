@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { createLawyer, getLawyerProfileById, updateLawyerProfile, getAvailableLawyersByBarId, LawyerProfile} from '../services/lawyerServices';
-import { CreateLawyerInput, UpdateLawyerInput } from '../schemas/lawyerSchema';
+import { createLawyer, getLawyerProfileById, updateLawyerProfile, getAvailableLawyersByBarId, LawyerProfile, getLawyerLocation, updateLawyerLocation} from '../services/lawyerServices';
+import { CreateLawyerInput, UpdateLawyerInput, UpdateLawyerLocationInput } from '../schemas/lawyerSchema';
 import { omit } from 'lodash';
 import sendEmail from '../utils/mailer';
 
@@ -98,5 +98,41 @@ export async function updateLawyerProfileHandler(req: Request<{}, {}, UpdateLawy
   } catch (error) {
     console.error("Error updating lawyer profile:", error);
     return res.status(500).json({ error: "Failed to update lawyer profile" });
+  }
+}
+
+// Controller function to get lawyer's location
+export async function getLawyerLocationHandler(req: Request, res: Response) {
+  const lawyerId = res.locals.user.lawyer_id;
+
+  try {
+    const lawyerLocation = await getLawyerLocation(lawyerId);
+
+    if (!lawyerLocation) {
+      return res.status(404).json({ error: "Lawyer location not found" });
+    }
+
+    return res.status(200).json(lawyerLocation);
+  } catch (error) {
+    console.error("Error getting lawyer's location:", error);
+    return res.status(500).json({ error: "Failed to get lawyer's location" });
+  }
+}
+
+// Controller function to update lawyer location
+export async function updateLawyerLocationHandler(req: Request<{}, {}, UpdateLawyerLocationInput["body"]>, res: Response) {
+  const lawyerId = res.locals.user.lawyer_id;
+  const { bar_name } = req.body;
+
+  try {
+    const success = await updateLawyerLocation(lawyerId, bar_name);
+
+    if (success) {
+      return res.status(200).json({ message: "Lawyer location updated successfully." });
+    } else {
+      return res.status(500).json({ error: "Failed to update lawyer location." });
+    }
+  } catch (error: any) {
+    return res.status(500).json({ error: "Failed to update lawyer location.", message: error.message });
   }
 }
