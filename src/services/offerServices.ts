@@ -144,7 +144,7 @@ export async function listReceivedOffers(toLawyerId: number): Promise<Offer[]> {
       const query = `
         SELECT 
           offers.offer_id, 
-          offers.to_lawyer_id, 
+          offers.from_lawyer_id, 
           offers.job_id, 
           offers.state,
           jobs.description,

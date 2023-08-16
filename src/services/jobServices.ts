@@ -4,8 +4,12 @@ import { CreateJobInput } from "../schemas/jobSchema";
 export interface Job {
     job_id: number;
     description: string;
+    start_date: Date;
     end_date: Date;
     job_state: string;
+    creator_lawyer_id: number;
+    lawyer_id: number;
+    created_at: Date;
   }
 
 // Function to create a new job

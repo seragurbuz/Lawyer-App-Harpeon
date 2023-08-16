@@ -12,6 +12,7 @@ import starRouter from "./routes/starRoutes";
 import jobRouter from "./routes/jobRoutes";
 import offerRouter from "./routes/offerRoutes";
 import deserializeUser from "./middlewares/deserializeUser";
+import swaggerDocs from "./utils/swagger";
 
 
 const app = express();
@@ -32,5 +33,9 @@ const port = config.get<number>("port");
 
 app.listen(port, () => {
     log.info(`App started at http://localhost:${port}`);
+
     connect();
+    
+    swaggerDocs(app, port);
+
 })

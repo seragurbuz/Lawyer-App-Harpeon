@@ -1,8 +1,16 @@
 import { Request, Response } from 'express';
-import { createLawyer, getLawyerProfileById, updateLawyerProfile, getAvailableLawyersByBarId, LawyerProfile, getLawyerLocation, updateLawyerLocation} from '../services/lawyerServices';
-import { CreateLawyerInput, UpdateLawyerInput, UpdateLawyerLocationInput } from '../schemas/lawyerSchema';
+import { createLawyer, getLawyerProfileById, updateLawyerProfile, getAvailableLawyers, LawyerProfile, getLawyerLocation, updateLawyerLocation} from '../services/lawyerServices';
+import { CreateLawyerInput, GetLawyerProfileInput, UpdateLawyerInput, UpdateLawyerLocationInput } from '../schemas/lawyerSchema';
 import { omit } from 'lodash';
 import sendEmail from '../utils/mailer';
+
+export interface GetAvailableLawyersQuery {
+  city?: string;
+  bar?: string;
+  minRating?: string;
+  maxRating?: string;
+  sort?: 'asc' | 'desc';
+}
 
 // Controller function to create a new lawyer
 export async function createLawyerHandler(req: Request<{}, {}, CreateLawyerInput["body"]>, res: Response) {
@@ -29,7 +37,7 @@ export async function createLawyerHandler(req: Request<{}, {}, CreateLawyerInput
 }
 
 // Controller func to get a lawyer's profile by id
-export async function getLawyerProfileByIdHandler( req: Request, res: Response ) {
+export async function getLawyerProfileByIdHandler( req: Request<GetLawyerProfileInput["params"]>, res: Response ) {
   const lawyerId = Number(req.params.lawyer_id);
 
   if (isNaN(lawyerId)) {
@@ -49,19 +57,23 @@ export async function getLawyerProfileByIdHandler( req: Request, res: Response )
   }
 }
 
-// Controller function to get available lawyers in a bar
-export async function getAvailableLawyersByBarIdHandler(req: Request, res: Response) {
+// Controller function to get available lawyers
+export async function getAvailableLawyersHandler(req: Request<{}, {}, {}, GetAvailableLawyersQuery>, res: Response) {
   const lawyerId = res.locals.user.lawyer_id;
-  const barId = Number(req.params.bar_id);
+  
+  const { city, bar, minRating, maxRating, sort } = req.query;
 
-  if (isNaN(barId)) {
-    return res.status(400).send("Invalid bar_id");
-  }
   try {
-    const lawyers = await getAvailableLawyersByBarId(barId, lawyerId);
+    const lawyers = await getAvailableLawyers(lawyerId, {
+      city: city ? Number(city) : undefined,
+      bar: bar ? Number(bar) : undefined,
+      minRating: minRating ? parseFloat(minRating) : undefined,
+      maxRating: maxRating ? parseFloat(maxRating) : undefined,
+      sort,
+    });
 
     if (lawyers.length === 0) {
-      return res.status(404).send('No available lawyers found for the specified bar');
+      return res.status(404).send('No available lawyers found for the specified criteria');
     }
 
     return res.status(200).json(lawyers);
@@ -70,6 +82,7 @@ export async function getAvailableLawyersByBarIdHandler(req: Request, res: Respo
     return res.status(500).send('Failed to get available lawyers');
   }
 }
+
 
 // Controller function to update lawyer profile
 export async function updateLawyerProfileHandler(req: Request<{}, {}, UpdateLawyerInput["body"]>, res: Response) {

@@ -10,7 +10,6 @@ import sendEmail from "../utils/mailer";
 
 export async function loginHandler(req: Request<{}, {}, LoginInput["body"]>, res: Response) {
   try {
-
   // Validate the email and password
   const lawyer = await validatePassword(req.body);
   const message = "Invalid email or password";
@@ -38,6 +37,8 @@ export async function loginHandler(req: Request<{}, {}, LoginInput["body"]>, res
 }
 
 export async function verifyEmailHandler( req: Request<{}, {}, VerifyEmailInput["body"]>, res: Response ) {
+
+  try{
   const lawyer_id = req.body.lawyer_id;
   const verification_code = req.body.verification_code;
 
@@ -45,38 +46,43 @@ export async function verifyEmailHandler( req: Request<{}, {}, VerifyEmailInput[
   const lawyer = await getLawyerProfileById(lawyer_id);
 
   if (!lawyer) {
-    return res.send("Could not verify lawyer");
+    return res.status(404).json({ error: "Lawyer not found" });
   }
 
   // check to see if they are already verified
   if (lawyer.verified) {
-    return res.send("Lawyer is already verified");
+    return res.status(409).json({ error: "Lawyer is already verified" });
   }
 
   // check to see if the verificationCode matches
   if (lawyer.verification_code === verification_code) {
     await verifyEmail(lawyer_id);
 
-    return res.send("Lawyer successfully verified");
+    return res.status(200).json({message:"Lawyer successfully verified"});
   }
-  return res.send("Could not verify lawyer");
+  return res.status(400).json({ error: "Could not verify lawyer" });
+  } catch (error) {
+    console.error("Error verifying email:", error);
+    return res.status(500).json({ error: "Failed to verify email" });
+  }
+
 }
 
 export async function forgotPasswordHandler(req: Request<{}, {}, ForgotPasswordInput["body"]>, res: Response) {
 
+  try{ 
   const message = "If a lawyer with that email is registered you will receive a password reset email";
-
   const { email } = req.body;
 
   const lawyer = await getLawyerByEmail(email);
 
   if (!lawyer) {
     log.debug(`Lawyer with email ${email} does not exists`);
-    return res.send(message);
+      return res.status(404).json({ error: "Lawyer not found" });
   }
-
+  
   if (!lawyer.verified) {
-    return res.send("Lawyer is not verified");
+    return res.status(409).json({ error: "Lawyer is not verified" });
   }
 
   const passwordResetCode = await forgotPassword(lawyer.lawyer_id);
@@ -87,23 +93,33 @@ export async function forgotPasswordHandler(req: Request<{}, {}, ForgotPasswordI
     subject: "Reset your password",
     text: `Password reset code: ${passwordResetCode}. Id ${lawyer.lawyer_id}`,
   });
-
+  
   log.debug(`Password reset email sent to ${email}`);
+  return res.status(200).json({ message });
+  } catch (error) {
+    console.error("Error sending password reset email:", error);
+    return res.status(500).json({ error: "Failed to send password reset email" });
+  }
 
-  return res.send(message);
 }
 
 export async function resetPasswordHandler( req: Request<{}, {}, ResetPasswordInput["body"]>, res: Response ) {
 
-  const { lawyer_id, password_reset_code, password } = req.body;
+  try {
+    const { lawyer_id, password_reset_code, password } = req.body;
 
-  const lawyer = await getLawyerProfileById(lawyer_id);
+    const lawyer = await getLawyerProfileById(lawyer_id);
 
-  if ( !lawyer || !lawyer.password_reset_code || lawyer.password_reset_code !== password_reset_code) {
-    return res.status(400).send("Could not reset lawyer password");
+    if ( !lawyer || !lawyer.password_reset_code || lawyer.password_reset_code !== password_reset_code) {
+      return res.status(400).send("Could not reset lawyer password");
+    }
+
+    await resetPassword(lawyer_id, password);
+
+    return res.status(200).json({ message: "Successfully updated password" });
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    return res.status(500).json({ error: "Failed to reset password" });
   }
 
-  await resetPassword(lawyer_id, password);
-
-  return res.send("Successfully updated password");
 }

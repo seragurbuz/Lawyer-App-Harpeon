@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { getBarsByCityId } from '../services/barServices';
+import { GetBarsByCityIdInput } from '../schemas/barSchema';
 
-export async function getBarsByCityIdHandler(req: Request, res: Response) {
+export async function getBarsByCityIdHandler(req: Request<GetBarsByCityIdInput["params"]>, res: Response) {
   const cityId = Number(req.params.city_id);
 
   if (isNaN(cityId)) {

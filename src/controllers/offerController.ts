@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { makeOffer, rejectOffer, acceptOffer, listSentOffers, listReceivedOffers, deleteOffer } from '../services/offerServices';
-import { MakeOfferInput } from '../schemas/offerSchema';
+import { AcceptOfferInput, DeleteOfferInput, MakeOfferInput, RejectOfferInput } from '../schemas/offerSchema';
 
 export async function makeOfferHandler(req: Request<any, any, MakeOfferInput["body"]>, res: Response) {
   const fromLawyerId = res.locals.user.lawyer_id;
@@ -19,7 +19,7 @@ export async function makeOfferHandler(req: Request<any, any, MakeOfferInput["bo
   }
 }
 
-export async function rejectOfferHandler(req: Request, res: Response) {
+export async function rejectOfferHandler(req: Request<RejectOfferInput["params"]>, res: Response) {
   const lawyerId = res.locals.user.lawyer_id;
   const offerId = Number(req.params.offer_id);
 
@@ -36,7 +36,7 @@ export async function rejectOfferHandler(req: Request, res: Response) {
   }
 }
 
-export async function acceptOfferHandler(req: Request, res: Response) {
+export async function acceptOfferHandler(req: Request<AcceptOfferInput["params"]>, res: Response) {
   const lawyerId = res.locals.user.lawyer_id;
   const offerId = Number(req.params.offer_id);
 
@@ -79,8 +79,8 @@ export async function listReceivedOffersHandler(req: Request, res: Response) {
 }
 
 // Controller function to delete an offer
-export async function deleteOfferHandler(req: Request, res: Response) {
-  const offerId = Number(req.params.offerId);
+export async function deleteOfferHandler(req: Request<DeleteOfferInput["params"]>, res: Response) {
+  const offerId = Number(req.params.offer_id);
   const lawyerId = res.locals.user.lawyer_id;
 
   try {

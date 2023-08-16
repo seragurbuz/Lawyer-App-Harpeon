@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { createJob, endJob, getJobById, listCreatedJobs } from '../services/jobServices';
-import { CreateJobInput } from '../schemas/jobSchema';
+import { CreateJobInput, EndJobInput, GetJobInput } from '../schemas/jobSchema';
 
 // Controller func to create a job
 export async function createJobHandler(req: Request<any, any, CreateJobInput["body"]>, res: Response) {
@@ -21,7 +21,7 @@ export async function createJobHandler(req: Request<any, any, CreateJobInput["bo
 }
 
 // Controller func to end a job
-export async function endJobHandler(req: Request, res: Response) {
+export async function endJobHandler(req: Request<EndJobInput["params"]>, res: Response) {
   const lawyerId = res.locals.user.lawyer_id;
   const jobId = Number(req.params.job_id);
 
@@ -39,7 +39,7 @@ export async function endJobHandler(req: Request, res: Response) {
 }
 
 // Controller function to get a job by its ID
-export async function getJobByIdHandler(req: Request, res: Response) {
+export async function getJobByIdHandler(req: Request<GetJobInput["params"]>, res: Response) {
   const jobId = Number(req.params.job_id);
 
   try {

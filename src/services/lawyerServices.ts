@@ -23,6 +23,14 @@ export interface LawyerProfile extends Lawyer {
   star_rating: number;
 }
 
+export interface GetAvailableLawyersFilters {
+  city?: number;
+  bar?: number;
+  minRating?: number;
+  maxRating?: number;
+  sort?: 'asc' | 'desc';
+}
+
 // Function to hash the password using argon2
 async function hashPassword(password: string): Promise<string> {
   return await argon2.hash(password);
@@ -133,9 +141,9 @@ export async function getLawyerProfileById(id: number): Promise<LawyerProfile | 
 }
 
 // Function to get available lawyers in a bar
-export async function getAvailableLawyersByBarId(bar_id: number, searchingLawyerId: number): Promise<LawyerProfile[]> {
+export async function getAvailableLawyers(searchingLawyerId: number, filters: GetAvailableLawyersFilters): Promise<LawyerProfile[]> {
   try {
-    const query = `
+    let query = `
       SELECT 
         lawyer.lawyer_id, 
         lawyer.first_name, 
@@ -149,12 +157,41 @@ export async function getAvailableLawyersByBarId(bar_id: number, searchingLawyer
         lawyer_profile.star_rating
       FROM lawyer
       LEFT JOIN lawyer_profile ON lawyer.lawyer_id = lawyer_profile.lawyer_id
-      WHERE lawyer.bar_id = $1 AND lawyer.status = $2 AND lawyer.lawyer_id != $3;
+      WHERE lawyer.status = $1 AND lawyer.lawyer_id != $2
     `;
-    const values = [bar_id, 'available', searchingLawyerId];
+
+    const values = ['available', searchingLawyerId];
+
+    // filtering
+    if (filters.city !== undefined) {
+      query += ` AND lawyer.bar_id IN (SELECT bar_id FROM bar WHERE city_id = $${values.length + 1})`;
+      values.push(filters.city);
+    }
+
+    if (filters.bar !== undefined) {
+      query += ` AND lawyer.bar_id = $${values.length + 1}`;
+      values.push(filters.bar);
+    }
+
+    if (filters.minRating !== undefined) {
+      query += ` AND lawyer_profile.star_rating >= $${values.length + 1}`;
+      values.push(filters.minRating);
+    }
+
+    if (filters.maxRating !== undefined) {
+      query += ` AND lawyer_profile.star_rating <= $${values.length + 1}`;
+      values.push(filters.maxRating);
+    }
+
+    // sorting
+    if (filters.sort === 'desc') {
+      query += ` ORDER BY lawyer_profile.star_rating DESC`;
+    } else if (filters.sort === 'asc') {
+      query += ` ORDER BY lawyer_profile.star_rating ASC`;
+    }
+
     const result = await pool.query(query, values);
 
-    // Omit 'verified' and 'password' fields from each lawyer profile in the result
     const lawyerProfiles: LawyerProfile[] = result.rows.map((row) => omit(row, ["password", "verification_code", "password_reset_code"]) as LawyerProfile);
 
     return lawyerProfiles;
@@ -163,6 +200,7 @@ export async function getAvailableLawyersByBarId(bar_id: number, searchingLawyer
     return [];
   }
 }
+
 
 // Function to update a lawyer profile
 export async function updateLawyerProfile(lawyerId: number, updatedProfile: UpdateLawyerInput): Promise<LawyerProfile | null> {
