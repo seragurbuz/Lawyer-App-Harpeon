@@ -30,21 +30,21 @@ export async function createJob(input: CreateJobInput, creatorLawyerID: number):
 }
 
 // Function to end a job
-export async function endJob(jobId: number, lawyerId: number): Promise<boolean> {
+export async function endJob(jobId: number, lawyerId: number): Promise<boolean | string> {
   try {
     // Get the job details
     const getJobQuery = `SELECT lawyer_id FROM jobs WHERE job_id = $1;`;
     const jobResult = await pool.query(getJobQuery, [jobId]);
 
     if (jobResult.rows.length === 0) {
-      throw new Error("Job not found.");
+      return "Job not found.";
     }
 
     const lawyer_id = jobResult.rows[0].lawyer_id;
 
     // Check if the lawyer trying to end the job is the creator
     if (lawyer_id !== lawyerId) {
-      throw new Error("You don't have the permission to end this job.");
+      return "You don't have the permission to end this job.";
     }
 
     // Update the job's end_date to mark it as ended

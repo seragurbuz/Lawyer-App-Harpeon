@@ -12,7 +12,10 @@ export async function giveStarRatingHandler(req: Request<any, any, ratingInput["
   }
 
   try {
-    await giveStarRating(fromLawyerId, toLawyerId, req.body.rating);
+    const result = await giveStarRating(fromLawyerId, toLawyerId, req.body.rating);
+    if (typeof result === 'string') {
+      return res.status(404).json({ error: result });
+    }
 
     return res.status(200).json({ message: "Star rating given successfully" });
   } catch (error) {

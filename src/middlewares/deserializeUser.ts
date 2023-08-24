@@ -27,7 +27,7 @@ const deserializeUser = async (
     const newAccessToken = await reIssueAccessToken({refreshToken});
 
     if (newAccessToken) {
-      return res.status(200).json({ message: "Previous access token has expired", newAccessToken: newAccessToken });
+      return res.status(200).json({ message: "Previous access token has expired, changed with the new one", newAccessToken: newAccessToken });
     }
 
     const result = verifyJwt(newAccessToken as string, "accessTokenPublicKey");

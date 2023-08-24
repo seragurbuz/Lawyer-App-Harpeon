@@ -1,6 +1,6 @@
 import { pool } from "../utils/connectToDb";
 
-export async function giveStarRating( fromLawyerId: number, toLawyerId: number, rating: number ): Promise<void> {
+export async function giveStarRating( fromLawyerId: number, toLawyerId: number, rating: number ): Promise<string | void> {
 
     // Get the current star rating and rating num of the target lawyer from the database
     const result = await pool.query(
@@ -9,7 +9,7 @@ export async function giveStarRating( fromLawyerId: number, toLawyerId: number, 
     );
       
     if (result.rows.length === 0) {
-        throw new Error("Target lawyer not found.");
+        return "Target lawyer not found.";
     }
         
     const currentStarRating = result.rows[0].star_rating;

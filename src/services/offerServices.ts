@@ -10,21 +10,21 @@ export interface Offer extends Job{
   }  
 
 // Function to make an offer
-export async function makeOffer(fromLawyerId: number, toLawyerId: number, jobId: number): Promise<boolean> {
+export async function makeOffer(fromLawyerId: number, toLawyerId: number, jobId: number): Promise<boolean | string> {
     try {
       // Fetch the creator lawyer's ID associated with the job
       const query = `SELECT creator_lawyer_id FROM jobs WHERE job_id = $1;`;
       const result = await pool.query(query, [jobId]);
   
       if (result.rows.length === 0) {
-        throw new Error("Job not found.");
+        return "Job not found.";
       }
   
       const creatorLawyerId = result.rows[0].creator_lawyer_id;
   
       // Check if the lawyer making the offer is the creator lawyer
       if (fromLawyerId !== creatorLawyerId) {
-        throw new Error("Only the creator lawyer can make offers for this job.");
+        return "Only the creator lawyer can make offers for this job.";
       }
 
       // Check if the job has already been offered
@@ -32,7 +32,7 @@ export async function makeOffer(fromLawyerId: number, toLawyerId: number, jobId:
       const offerExistsResult = await pool.query(offerExistsQuery, [fromLawyerId, jobId]);
 
       if (offerExistsResult.rows.length > 0) {
-        throw new Error("The same job has already been offered to someone else.");
+        return "The same job has already been offered to someone else.";
       }
   
       // Insert the offer into the offers table
@@ -47,20 +47,20 @@ export async function makeOffer(fromLawyerId: number, toLawyerId: number, jobId:
   }  
 
 // Function to reject an offer
-export async function rejectOffer(offerId: number, lawyerId: number): Promise<boolean> {
+export async function rejectOffer(offerId: number, lawyerId: number): Promise<boolean | string> {
   try {
     // Get the offer details
     const getOfferQuery = `SELECT from_lawyer_id, to_lawyer_id, job_id  FROM offers WHERE offer_id = $1;`;
     const offerResult = await pool.query(getOfferQuery, [offerId]);
     
     if (offerResult.rows.length === 0) {
-        throw new Error("Offer not found.");
+        return "Offer not found.";
     }
     
     const { from_lawyer_id, to_lawyer_id, job_id } = offerResult.rows[0];
 
     if (to_lawyer_id !== lawyerId) {
-        throw new Error("This job is not offered to the current user");
+        return "This job is not offered to the current user";
     }
 
     // Insert the rejected offer into the rejected_offers table
@@ -79,19 +79,19 @@ export async function rejectOffer(offerId: number, lawyerId: number): Promise<bo
 }
 
 // Function to accept an offer
-export async function acceptOffer(offerId: number, lawyerId: number): Promise<boolean> {
+export async function acceptOffer(offerId: number, lawyerId: number): Promise<boolean | string> {
   try {
     // Get the offer details
     const getOfferQuery = `SELECT to_lawyer_id, job_id FROM offers WHERE offer_id = $1;`;
     const offerResult = await pool.query(getOfferQuery, [offerId]);
 
     if (offerResult.rows.length === 0) {
-      throw new Error("Offer not found.");
+      return "Offer not found.";
     }
 
     const { to_lawyer_id, job_id } = offerResult.rows[0];
     if (to_lawyer_id !== lawyerId) {
-        throw new Error("This job is not offered to the current user");
+        return "This job is not offered to the current user";
     }
 
 
@@ -163,21 +163,21 @@ export async function listReceivedOffers(toLawyerId: number): Promise<Offer[]> {
   }
 
 // Function to delete an offer
-export async function deleteOffer(offerId: number, lawyerId: number): Promise<boolean> {
+export async function deleteOffer(offerId: number, lawyerId: number): Promise<boolean | string> {
   try {
     // Fetch the offer details
     const query = `SELECT from_lawyer_id, job_id FROM offers WHERE offer_id = $1;`;
     const result = await pool.query(query, [offerId]);
 
     if (result.rows.length === 0) {
-      throw new Error("Offer not found.");
+      return "Offer not found.";
     }
 
     const { from_lawyer_id } = result.rows[0];
 
     // Check if the lawyer trying to delete the offer is the creator
     if (from_lawyer_id !== lawyerId) {
-      throw new Error("Only the creator lawyer can delete this offer.");
+      return "Only the creator lawyer can delete this offer.";
     }
 
     // Delete the offer from the offers table

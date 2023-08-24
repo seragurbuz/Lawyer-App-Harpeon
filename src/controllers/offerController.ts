@@ -7,10 +7,14 @@ export async function makeOfferHandler(req: Request<any, any, MakeOfferInput["bo
   const { to_lawyer_id, job_id } = req.body;
 
   try {
-    const success = await makeOffer(fromLawyerId, to_lawyer_id, job_id);
-    if (success) {
+    const result = await makeOffer(fromLawyerId, to_lawyer_id, job_id);
+    if (result === true) {
       return res.status(201).json({ message: 'Offer made successfully' });
-    } else {
+    } 
+    if (typeof result === 'string') {
+      return res.status(400).json({ error: result });
+    }
+    else {
       return res.status(500).json({ error: 'Failed to make offer' });
     }
   } catch (error) {
@@ -24,10 +28,14 @@ export async function rejectOfferHandler(req: Request<RejectOfferInput["params"]
   const offerId = Number(req.params.offer_id);
 
   try {
-    const success = await rejectOffer(offerId, lawyerId);
-    if (success) {
+    const result = await rejectOffer(offerId, lawyerId);
+    if (result === true) {
       return res.status(200).json({ message: 'Offer rejected successfully' });
-    } else {
+    } 
+    if (typeof result === 'string'){
+      return res.status(400).json({ error: result });
+    }
+    else {
       return res.status(500).json({ error: 'Failed to reject offer' });
     }
   } catch (error) {
@@ -43,9 +51,13 @@ export async function acceptOfferHandler(req: Request<AcceptOfferInput["params"]
   try {
     const result = await acceptOffer(offerId, lawyerId);
 
-    if (result) {
+    if (result === true) {
       return res.status(200).json({ message: 'Offer accepted successfully' });
-    } else {
+    } 
+    if (typeof result === 'string'){
+      return res.status(400).json({ error: result });
+    }
+    else {
       return res.status(500).json({ error: 'Failed to accept offer' });
     }
   } catch (error) {
@@ -78,18 +90,21 @@ export async function listReceivedOffersHandler(req: Request, res: Response) {
   }
 }
 
-// Controller function to delete an offer
 export async function deleteOfferHandler(req: Request<DeleteOfferInput["params"]>, res: Response) {
   const offerId = Number(req.params.offer_id);
   const lawyerId = res.locals.user.lawyer_id;
 
   try {
-    const success = await deleteOffer(offerId, lawyerId);
+    const result = await deleteOffer(offerId, lawyerId);
 
-    if (success) {
+    if (result === true) {
       return res.status(200).json({ message: "Offer deleted successfully." });
-    } else {
-      return res.status(400).json({ error: "Failed to delete the offer." });
+    } 
+    if (typeof result === 'string'){
+      return res.status(400).json({ error: result });
+    }
+    else {
+      return res.status(500).json({ error: "Failed to delete the offer." });
     }
   } catch (error) {
     console.error("Error in deleteOfferHandler:", error);

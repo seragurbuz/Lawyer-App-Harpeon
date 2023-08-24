@@ -87,8 +87,6 @@ authRouter.post('/api/verify-email', validateResource(verifyEmailSchema), verify
  *          application/json:
  *            schema:
  *              $ref: '#/components/schemas/ForgotPasswordResponse'
- *      404:
- *        description: Lawyer not found
  *      409:
  *        description: Lawyer is not verified
  *      500:

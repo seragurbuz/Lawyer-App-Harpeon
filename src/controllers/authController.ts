@@ -78,7 +78,7 @@ export async function forgotPasswordHandler(req: Request<{}, {}, ForgotPasswordI
 
   if (!lawyer) {
     log.debug(`Lawyer with email ${email} does not exists`);
-      return res.status(404).json({ error: "Lawyer not found" });
+    return res.status(200).json({ message });
   }
   
   if (!lawyer.verified) {

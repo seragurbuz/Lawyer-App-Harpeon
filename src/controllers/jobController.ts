@@ -26,11 +26,12 @@ export async function endJobHandler(req: Request<EndJobInput["params"]>, res: Re
   const jobId = Number(req.params.job_id);
 
   try {
-    const success = await endJob(jobId, lawyerId);
-    if (success) {
+    const result = await endJob(jobId, lawyerId);
+    if (result === true) {
       return res.status(200).json({ message: 'Job ended successfully' });
-    } else {
-      return res.status(500).json({ error: 'Failed to end job' });
+    } 
+    if (typeof result === 'string') {
+      return res.status(400).json({ error: result });
     }
   } catch (error) {
     console.error('Error ending job:', error);

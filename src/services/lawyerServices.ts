@@ -201,7 +201,6 @@ export async function getAvailableLawyers(searchingLawyerId: number, filters: Ge
   }
 }
 
-
 // Function to update a lawyer profile
 export async function updateLawyerProfile(lawyerId: number, updatedProfile: UpdateLawyerInput): Promise<LawyerProfile | null> {
   try {
@@ -288,14 +287,14 @@ export async function getLawyerLocation(lawyerId: number) {
 }
 
 // Function to update lawyer location
-export async function updateLawyerLocation(lawyerId: number, barName: string): Promise<boolean> {
+export async function updateLawyerLocation(lawyerId: number, barName: string): Promise<boolean | string> {
   try {
     // Check if the bar exists
     const checkBarQuery = `SELECT bar_id FROM bar WHERE bar_name = $1;`;
     const barResult = await pool.query(checkBarQuery, [barName]);
 
     if (barResult.rows.length === 0) {
-      throw new Error("Bar not found.");
+      return "Bar not found.";
     }
 
     const barId = barResult.rows[0].bar_id;

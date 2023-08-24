@@ -35,6 +35,8 @@ const starRouter = Router();
    *         description: Bad request
    *       403:
    *         description: Forbidden
+   *       404:
+   *         description: Target lawyer not found
    *       500:
    *         description: Internal server error
    */

@@ -57,6 +57,8 @@ jobRouter.post('/api/jobs', validateResource(createJobSchema), requireUser, crea
    *              properties:
    *                message:
    *                  type: string
+   *       400:
+   *         description: Bad Request
    *       403:
    *         description: Forbidden
    *       500:

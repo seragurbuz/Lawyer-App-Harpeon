@@ -26,6 +26,8 @@ const offerRouter = express.Router();
 *          application/json:
 *            schema:
 *              $ref: '#/components/schemas/MakeOfferResponse'
+*      400:
+*        description: Bad Request
 *      403:
 *        description: Forbidden
 *      500:
@@ -100,6 +102,8 @@ offerRouter.get('/api/offers/received', requireUser, listReceivedOffersHandler);
    *          application/json:
    *           schema:
    *              $ref: '#/components/schemas/AcceptOfferResponse'
+   *       400:
+   *         description: Bad Request
    *       403:
    *         description: Forbidden
    *       500:
@@ -128,6 +132,8 @@ offerRouter.put('/api/offers/:offer_id/accept', validateResource(acceptOfferSche
    *          application/json:
    *           schema:
    *              $ref: '#/components/schemas/RejectOfferResponse'
+   *       400:
+   *         description: Bad Request
    *       403:
    *         description: Forbidden
    *       500:

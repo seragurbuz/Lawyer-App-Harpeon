@@ -198,6 +198,8 @@ lawyerRouter.get('/api/location', requireUser, getLawyerLocationHandler);
    *              $ref: '#/components/schemas/UpdateLawyerLocationResponse'
    *       403:
    *         description: Forbidden
+   *       404:
+   *         description: Bar not found
    *       500:
    *         description: Internal server error
    */

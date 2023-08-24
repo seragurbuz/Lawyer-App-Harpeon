@@ -83,7 +83,6 @@ export async function getAvailableLawyersHandler(req: Request<{}, {}, {}, GetAva
   }
 }
 
-
 // Controller function to update lawyer profile
 export async function updateLawyerProfileHandler(req: Request<{}, {}, UpdateLawyerInput["body"]>, res: Response) {
   const lawyerId = res.locals.user.lawyer_id;
@@ -138,11 +137,15 @@ export async function updateLawyerLocationHandler(req: Request<{}, {}, UpdateLaw
   const { bar_name } = req.body;
 
   try {
-    const success = await updateLawyerLocation(lawyerId, bar_name);
+    const result = await updateLawyerLocation(lawyerId, bar_name);
 
-    if (success) {
+    if (result === true) {
       return res.status(200).json({ message: "Lawyer location updated successfully." });
-    } else {
+    } 
+    if (typeof result === 'string'){
+      return res.status(404).json({ error: result });
+    }
+    else {
       return res.status(500).json({ error: "Failed to update lawyer location." });
     }
   } catch (error: any) {
