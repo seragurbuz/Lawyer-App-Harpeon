@@ -104,7 +104,7 @@ export async function acceptOffer(offerId: number, lawyerId: number): Promise<bo
     await pool.query(updateJobQuery, [to_lawyer_id, job_id]);
 
     // Set the associated lawyer's status back to "reserved"
-    const updateLawyerStatusQuery = `UPDATE lawyer SET status = 'reserved' WHERE lawyer_id = $1;`;
+    const updateLawyerStatusQuery = `UPDATE lawyers SET status = 'reserved' WHERE lawyer_id = $1;`;
     await pool.query(updateLawyerStatusQuery, [to_lawyer_id]);
 
     return true;

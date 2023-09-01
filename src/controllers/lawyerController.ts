@@ -88,7 +88,7 @@ export async function updateLawyerProfileHandler(req: Request<{}, {}, UpdateLawy
   const lawyerId = res.locals.user.lawyer_id;
 
   const requestBodyFields = Object.keys(req.body);
-  const allowedFields = ["first_name", "last_name", "email", "bar_id", "status", "linkedin_url", "description"];
+  const allowedFields = ["first_name", "last_name", "bar_id", "status", "linkedin_url", "description"];
 
   // Check for invalid fields in the request body
   for (const field of requestBodyFields) {

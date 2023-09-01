@@ -7,7 +7,7 @@ export interface City {
 
 export async function getCities(): Promise<City[]> {
   try {
-    const query = 'SELECT * FROM city;';
+    const query = 'SELECT * FROM cities;';
     const result = await pool.query(query);
 
     return result.rows;

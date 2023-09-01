@@ -142,9 +142,6 @@ export const getLawyerProfileSchema = object({
  *        last_name:
  *          type: string
  *          example: Smith
- *        email:
- *          type: string
- *          example: john@example.com
  *        bar_id:
  *          type: integer
  *          example: 1
@@ -163,7 +160,6 @@ export const updateLawyerSchema = object({
   body: object({
     first_name: string().optional(),
     last_name: string().optional(),
-    email: string().email("Not a valid email").optional(),
     bar_id: number().optional(),
     status: string().optional(),
     linkedin_url: string().optional(),

@@ -67,7 +67,7 @@ export async function createLawyer(input: CreateLawyerInput): Promise<Lawyer | n
     await pool.query("BEGIN");
 
     const insertLawyerQuery = `
-      INSERT INTO lawyer (first_name, last_name, email, password, bar_id, status, verification_code)
+      INSERT INTO lawyers (first_name, last_name, email, password, bar_id, status, verification_code)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *;
     `;
@@ -83,7 +83,7 @@ export async function createLawyer(input: CreateLawyerInput): Promise<Lawyer | n
 
     // Insert the lawyer_id into the lawyer_profile table
     const insertProfileQuery = `
-      INSERT INTO lawyer_profile (lawyer_id, linkedin_url, description, star_rating)
+      INSERT INTO lawyer_profiles (lawyer_id, linkedin_url, description, star_rating)
       VALUES ($1, $2, $3, $4);
     `;
 
@@ -108,21 +108,21 @@ export async function getLawyerProfileById(id: number): Promise<LawyerProfile | 
   try {
     const query = `
       SELECT 
-        lawyer.lawyer_id, 
-        lawyer.first_name, 
-        lawyer.last_name, 
-        lawyer.email, 
-        lawyer.bar_id, 
-        lawyer.status, 
-        lawyer.verified,
-        lawyer.verification_code,
-        lawyer.password_reset_code,
-        lawyer_profile.linkedin_url,
-        lawyer_profile.description,
-        lawyer_profile.star_rating
-      FROM lawyer
-      LEFT JOIN lawyer_profile ON lawyer.lawyer_id = lawyer_profile.lawyer_id
-      WHERE lawyer.lawyer_id = $1;
+        lawyers.lawyer_id, 
+        lawyers.first_name, 
+        lawyers.last_name, 
+        lawyers.email, 
+        lawyers.bar_id, 
+        lawyers.status, 
+        lawyers.verified,
+        lawyers.verification_code,
+        lawyers.password_reset_code,
+        lawyer_profiles.linkedin_url,
+        lawyer_profiles.description,
+        lawyer_profiles.star_rating
+      FROM lawyers
+      LEFT JOIN lawyer_profiles ON lawyers.lawyer_id = lawyer_profiles.lawyer_id
+      WHERE lawyers.lawyer_id = $1;
     `;
     const values = [id];
     const result = await pool.query(query, values);
@@ -145,49 +145,49 @@ export async function getAvailableLawyers(searchingLawyerId: number, filters: Ge
   try {
     let query = `
       SELECT 
-        lawyer.lawyer_id, 
-        lawyer.first_name, 
-        lawyer.last_name, 
-        lawyer.email, 
-        lawyer.bar_id, 
-        lawyer.status,
-        lawyer.verified,
-        lawyer_profile.linkedin_url,
-        lawyer_profile.description,
-        lawyer_profile.star_rating
-      FROM lawyer
-      LEFT JOIN lawyer_profile ON lawyer.lawyer_id = lawyer_profile.lawyer_id
-      WHERE lawyer.status = $1 AND lawyer.lawyer_id != $2
+        lawyers.lawyer_id, 
+        lawyers.first_name, 
+        lawyers.last_name, 
+        lawyers.email, 
+        lawyers.bar_id, 
+        lawyers.status,
+        lawyers.verified,
+        lawyer_profiles.linkedin_url,
+        lawyer_profiles.description,
+        lawyer_profiles.star_rating
+      FROM lawyers
+      LEFT JOIN lawyer_profiles ON lawyers.lawyer_id = lawyer_profiles.lawyer_id
+      WHERE lawyers.status = $1 AND lawyers.lawyer_id != $2
     `;
 
     const values = ['available', searchingLawyerId];
 
     // filtering
     if (filters.city !== undefined) {
-      query += ` AND lawyer.bar_id IN (SELECT bar_id FROM bar WHERE city_id = $${values.length + 1})`;
+      query += ` AND lawyers.bar_id IN (SELECT bar_id FROM bars WHERE city_id = $${values.length + 1})`;
       values.push(filters.city);
     }
 
     if (filters.bar !== undefined) {
-      query += ` AND lawyer.bar_id = $${values.length + 1}`;
+      query += ` AND lawyers.bar_id = $${values.length + 1}`;
       values.push(filters.bar);
     }
 
     if (filters.minRating !== undefined) {
-      query += ` AND lawyer_profile.star_rating >= $${values.length + 1}`;
+      query += ` AND lawyer_profiles.star_rating >= $${values.length + 1}`;
       values.push(filters.minRating);
     }
 
     if (filters.maxRating !== undefined) {
-      query += ` AND lawyer_profile.star_rating <= $${values.length + 1}`;
+      query += ` AND lawyer_profiles.star_rating <= $${values.length + 1}`;
       values.push(filters.maxRating);
     }
 
     // sorting
     if (filters.sort === 'desc') {
-      query += ` ORDER BY lawyer_profile.star_rating DESC`;
+      query += ` ORDER BY lawyer_profiles.star_rating DESC`;
     } else if (filters.sort === 'asc') {
-      query += ` ORDER BY lawyer_profile.star_rating ASC`;
+      query += ` ORDER BY lawyer_profiles.star_rating ASC`;
     }
 
     const result = await pool.query(query, values);
@@ -205,32 +205,29 @@ export async function getAvailableLawyers(searchingLawyerId: number, filters: Ge
 export async function updateLawyerProfile(lawyerId: number, updatedProfile: UpdateLawyerInput): Promise<LawyerProfile | null> {
   try {
     // Destructure the fields from the updatedProfile
-    const { first_name, last_name, email, bar_id, status, linkedin_url, description} = updatedProfile.body;
+    const { first_name, last_name, bar_id, status, linkedin_url, description} = updatedProfile.body;
 
     if (first_name !== undefined) {
-      await pool.query('UPDATE lawyer SET first_name = $1 WHERE lawyer_id = $2', [first_name, lawyerId]);
+      await pool.query('UPDATE lawyers SET first_name = $1 WHERE lawyer_id = $2', [first_name, lawyerId]);
     }
     if (last_name !== undefined) {
-      await pool.query('UPDATE lawyer SET last_name = $1 WHERE lawyer_id = $2', [last_name, lawyerId]);
-    }
-    if (email !== undefined) {
-      await pool.query('UPDATE lawyer SET email = $1 WHERE lawyer_id = $2', [email, lawyerId]);
+      await pool.query('UPDATE lawyers SET last_name = $1 WHERE lawyer_id = $2', [last_name, lawyerId]);
     }
 
     if (bar_id !== undefined) {
-      await pool.query('UPDATE lawyer SET bar_id = $1 WHERE lawyer_id = $2', [bar_id, lawyerId]);
+      await pool.query('UPDATE lawyers SET bar_id = $1 WHERE lawyer_id = $2', [bar_id, lawyerId]);
 
     }
     if (status !== undefined) {
-      await pool.query('UPDATE lawyer SET status = $1 WHERE lawyer_id = $2', [status, lawyerId]);
+      await pool.query('UPDATE lawyers SET status = $1 WHERE lawyer_id = $2', [status, lawyerId]);
     }
 
     if (linkedin_url !== undefined) {
-      await pool.query('UPDATE lawyer_profile SET linkedin_url = $1 WHERE lawyer_id = $2', [linkedin_url, lawyerId]);
+      await pool.query('UPDATE lawyer_profiles SET linkedin_url = $1 WHERE lawyer_id = $2', [linkedin_url, lawyerId]);
     }
 
     if (description !== undefined) {
-      await pool.query('UPDATE lawyer_profile SET description = $1 WHERE lawyer_id = $2', [description, lawyerId]);
+      await pool.query('UPDATE lawyer_profiles SET description = $1 WHERE lawyer_id = $2', [description, lawyerId]);
     }
 
     const updatedLawyerProfile = await getLawyerProfileById(lawyerId);
@@ -245,7 +242,7 @@ export async function updateLawyerProfile(lawyerId: number, updatedProfile: Upda
 // Function to get a lawyer by email
 export async function getLawyerByEmail(email: string): Promise<Lawyer | null> {
   try {
-    const query = 'SELECT * FROM lawyer WHERE email = $1;';
+    const query = 'SELECT * FROM lawyers WHERE email = $1;';
     const values = [email];
     const result = await pool.query(query, values);
 
@@ -267,9 +264,9 @@ export async function getLawyerLocation(lawyerId: number) {
   try {
     const query = `
       SELECT c.city_id, c.city_name, b.bar_id, b.bar_name
-      FROM lawyer l
-      INNER JOIN bar b ON l.bar_id = b.bar_id
-      INNER JOIN city c ON b.city_id = c.city_id
+      FROM lawyers l
+      INNER JOIN bars b ON l.bar_id = b.bar_id
+      INNER JOIN cities c ON b.city_id = c.city_id
       WHERE l.lawyer_id = $1;
     `;
 
@@ -290,7 +287,7 @@ export async function getLawyerLocation(lawyerId: number) {
 export async function updateLawyerLocation(lawyerId: number, barName: string): Promise<boolean | string> {
   try {
     // Check if the bar exists
-    const checkBarQuery = `SELECT bar_id FROM bar WHERE bar_name = $1;`;
+    const checkBarQuery = `SELECT bar_id FROM bars WHERE bar_name = $1;`;
     const barResult = await pool.query(checkBarQuery, [barName]);
 
     if (barResult.rows.length === 0) {
@@ -300,7 +297,7 @@ export async function updateLawyerLocation(lawyerId: number, barName: string): P
     const barId = barResult.rows[0].bar_id;
 
     // Update the lawyer's bar_id
-    const updateLawyerQuery = `UPDATE lawyer SET bar_id = $1 WHERE lawyer_id = $2;`;
+    const updateLawyerQuery = `UPDATE lawyers SET bar_id = $1 WHERE lawyer_id = $2;`;
     await pool.query(updateLawyerQuery, [barId, lawyerId]);
 
     return true;

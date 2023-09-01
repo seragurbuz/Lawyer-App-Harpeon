@@ -4,7 +4,7 @@ export async function giveStarRating( fromLawyerId: number, toLawyerId: number, 
 
     // Get the current star rating and rating num of the target lawyer from the database
     const result = await pool.query(
-        "SELECT star_rating, rating_num FROM lawyer_profile WHERE lawyer_id = $1",
+        "SELECT star_rating, rating_num FROM lawyer_profiles WHERE lawyer_id = $1",
         [toLawyerId]
     );
       
@@ -17,7 +17,7 @@ export async function giveStarRating( fromLawyerId: number, toLawyerId: number, 
 
     //checking whether the rating between the 2 lawyers has already been made
     const exist = await pool.query(
-        "SELECT rating FROM star_rating WHERE from_lawyer_id = $1 AND to_lawyer_id = $2",
+        "SELECT rating FROM star_ratings WHERE from_lawyer_id = $1 AND to_lawyer_id = $2",
         [fromLawyerId, toLawyerId]
       );
     
@@ -33,12 +33,12 @@ export async function giveStarRating( fromLawyerId: number, toLawyerId: number, 
     const newAverageRating = newTotalStarRating / newRatingNum;
 
     // Insert the star rating into the star_rating table
-    await pool.query("INSERT INTO star_rating (from_lawyer_id, to_lawyer_id, rating) VALUES ($1, $2, $3)", 
+    await pool.query("INSERT INTO star_ratings (from_lawyer_id, to_lawyer_id, rating) VALUES ($1, $2, $3)", 
     [ fromLawyerId, toLawyerId, rating ]);
 
     // Update the target lawyer's star_rating and rating_num in the database
     await pool.query(
-      "UPDATE lawyer_profile SET star_rating = $1, rating_num = $2 WHERE lawyer_id = $3",
+      "UPDATE lawyer_profiles SET star_rating = $1, rating_num = $2 WHERE lawyer_id = $3",
       [newAverageRating, newRatingNum, toLawyerId]
     );
   }
@@ -48,11 +48,11 @@ export async function giveStarRating( fromLawyerId: number, toLawyerId: number, 
         const totalRating = starRating * ratingNum - oldRating + newRating;
         const newAverageRating = totalRating / ratingNum;
         await pool.query(
-            "UPDATE lawyer_profile SET star_rating = $1 WHERE lawyer_id = $2",
+            "UPDATE lawyer_profiles SET star_rating = $1 WHERE lawyer_id = $2",
             [newAverageRating, toLawyerId]
           );
         await pool.query(
-            "UPDATE star_rating SET rating = $1 WHERE from_lawyer_id = $2 AND to_lawyer_id = $3",
+            "UPDATE star_ratings SET rating = $1 WHERE from_lawyer_id = $2 AND to_lawyer_id = $3",
             [newRating, fromLawyerId, toLawyerId]
         )
   }

@@ -52,7 +52,7 @@ export async function endJob(jobId: number, lawyerId: number): Promise<boolean |
     await pool.query(updateJobQuery, [jobId]);
 
     // Set the associated lawyer's status back to "available"
-    const updateLawyerStatusQuery = `UPDATE lawyer SET status = 'available' WHERE lawyer_id = (SELECT lawyer_id FROM jobs WHERE job_id = $1);`;
+    const updateLawyerStatusQuery = `UPDATE lawyers SET status = 'available' WHERE lawyer_id = (SELECT lawyer_id FROM jobs WHERE job_id = $1);`;
     await pool.query(updateLawyerStatusQuery, [jobId]);
 
     return true;

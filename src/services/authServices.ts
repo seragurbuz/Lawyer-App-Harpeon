@@ -58,7 +58,7 @@ export async function reIssueAccessToken({ refreshToken }: { refreshToken: strin
 // Function to verify lawyer's email
 export async function verifyEmail(lawyerId: number): Promise<boolean> {
   try {
-    const query = `UPDATE lawyer SET verified = true WHERE lawyer_id = $1;`;
+    const query = `UPDATE lawyers SET verified = true WHERE lawyer_id = $1;`;
     await pool.query(query, [lawyerId]);
     return true;
   } catch (error) {
@@ -73,7 +73,7 @@ export async function forgotPassword(lawyerId: number): Promise<string | null> {
 
     const passwordResetCode = uuidv4();
 
-    const query = `UPDATE lawyer SET password_reset_code = $1 WHERE lawyer_id = $2;`;
+    const query = `UPDATE lawyers SET password_reset_code = $1 WHERE lawyer_id = $2;`;
     await pool.query(query, [passwordResetCode, lawyerId]);
 
     return passwordResetCode;
@@ -90,7 +90,7 @@ export async function resetPassword(lawyerId: number, password: string): Promise
     // Hash the password using argon2
     const hashedPassword = await argon2.hash(password);
 
-    await pool.query('UPDATE lawyer SET password = $1, password_reset_code = null WHERE lawyer_id = $2', [hashedPassword, lawyerId]);
+    await pool.query('UPDATE lawyers SET password = $1, password_reset_code = null WHERE lawyer_id = $2', [hashedPassword, lawyerId]);
 
     return true;
   }catch (error) {
