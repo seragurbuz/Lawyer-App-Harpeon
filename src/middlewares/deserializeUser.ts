@@ -2,6 +2,7 @@ import { get } from "lodash";
 import { Request, Response, NextFunction } from "express";
 import { verifyJwt } from "../utils/jwt";
 import { reIssueAccessToken } from "../services/authServices";
+import { getLawyerProfileById } from "../services/lawyerServices";
 
 const deserializeUser = async (
   req: Request,
@@ -19,6 +20,10 @@ const deserializeUser = async (
   const { decoded, expired } = verifyJwt(accessToken, "accessTokenPublicKey");
 
   if (decoded) {
+    const lawyer = await getLawyerProfileById(decoded.lawyer_id);
+    if(!lawyer?.verified){
+      return res.status(401).json({ error: "Email not verified. Please verify your email" })
+    }
     res.locals.user = decoded;
     return next();
   }
